@@ -60,32 +60,26 @@ learning_Ava/
 
 ### Prerequisites
 
-- Python 3.7+
-- pip
+- Python 3.8+ with `python3-venv` (Ubuntu/Debian: `sudo apt install python3 python3-venv python3-pip`)
 
-### Setup
+### One command to set up and run
 
-**Linux/Mac:**
 ```bash
-./setup.sh
-python app.py
+bash setup.sh
 ```
 
-**Windows:**
-```batch
-setup.bat
-python app.py
-```
-
-**Manual:**
-```bash
-python3 -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
-```
+This single command will:
+1. Check Python is installed
+2. Create a virtual environment
+3. Install all dependencies
+4. Start the app
 
 Then open your browser at `http://localhost:8080`.
+
+To run again after initial setup:
+```bash
+bash setup.sh
+```
 
 ## File Requirements
 
