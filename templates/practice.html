@@ -907,7 +907,7 @@
                 currentIndex++;
                 
                 if (isReading) {
-                    setTimeout(readNextItem, 1200); // 1.2 second delay for phrases
+                    setTimeout(readNextItem, 2000); // 2 second pause between words
                 }
             });
         }
@@ -1052,18 +1052,20 @@
 
             const voices = speechSynthesis.getVoices();
 
-            // 找到中文语音 - Find Chinese voice
-            const chineseVoice = voices.find(voice =>
-                voice.lang === "zh-CN" ||
-                voice.lang === "zh-TW"
-            );
+            // Prefer zh-CN voices (most natural Mandarin); fall back to zh-TW
+            const chineseVoice =
+                voices.find(v => v.lang === "zh-CN" && v.localService) ||
+                voices.find(v => v.lang === "zh-CN") ||
+                voices.find(v => v.lang === "zh-TW" && v.localService) ||
+                voices.find(v => v.lang === "zh-TW") ||
+                voices.find(v => v.lang.startsWith("zh"));
 
             if (chineseVoice) {
                 utterance.voice = chineseVoice;
             }
 
             utterance.lang = "zh-CN";
-            utterance.rate = 0.9;  // Slightly faster for smoother flow
+            utterance.rate = 0.65;  // Slower, more natural for kids
             utterance.pitch = 1;
             
             // Chain using utterance.onend as specified in PRD
