@@ -1,247 +1,128 @@
-# 🐼 Chinese Learning Web App for Kids
+# Chinese Learning Web App for Kids
 
-A fun and interactive web application designed to help children practice Chinese characters through image uploads and engaging learning activities.
+A kid-friendly Flask web application designed to help children practice Chinese vocabulary from their school worksheets.
 
-## 🌟 Features
+## How It Works
 
-- **📸 Image Upload**: Upload Chinese character images (PNG, JPG, JPEG)
-- **🖼️ Image Gallery**: View all uploaded images as clickable thumbnails
-- **🎯 Practice Mode**: Interactive practice sessions with:
-  - ✍️ Stroke animation (placeholder)
-  - 📖 Sentence reading (placeholder)
-  - 🎵 Nursery rhyme practice (placeholder)
-- **👶 Child-Friendly Design**: Colorful, large buttons, and intuitive interface
-- **📱 Mobile Responsive**: Works great on tablets and phones
-- **🔒 Security**: File validation, size limits, and secure filename handling
+1. **Upload a worksheet image** (PNG/JPG) — the homepage shows an upload form plus any previously saved units.
+2. **OCR extraction** — EasyOCR scans the image for Chinese text, then the app parses two specific sections from the worksheet:
+   - **口语表达词汇** (Spoken/Reading vocabulary)
+   - **识读词语** (Practice/Writing vocabulary)
+3. **Practice page** — displays the extracted vocabulary with two distinct modes:
+   - **Reading mode** — uses only spoken vocab (口语表达词汇)
+   - **Practice mode** — uses only practice vocab (识读词语)
+4. **Save by unit** — if the image contains a unit header (e.g. 单元一 / Unit 1), the vocabulary is saved as a JSON file so it can be reloaded later without re-running OCR.
 
-## 🚀 Quick Start
+## Tech Stack
 
-### Prerequisites
-- Python 3.7 or higher
-- pip (Python package manager)
+| Layer | Technology |
+|---|---|
+| Backend | Python / Flask |
+| OCR | EasyOCR (Chinese + English) |
+| Frontend | HTML/CSS (Jinja2 templates, kid-friendly theme) |
+| Storage | Local filesystem (`uploads/`, `saved_vocab/*.json`) |
 
-### Installation & Running
+## Key Files
 
-#### 🚀 Quick Start (Recommended)
+| File | Role |
+|---|---|
+| `app.py` | Main Flask app — routes, OCR logic, vocabulary parsing |
+| `templates/index.html` | Homepage with upload form + saved units list |
+| `templates/practice.html` | Practice/reading interface |
+| `saved_vocab/Unit_*.json` | Saved units with spoken + practice vocab |
+| `PRD.md` | Product requirements document |
+| `setup.sh` / `setup.bat` | Setup scripts for Linux/Windows |
 
-**For Linux/Mac:**
-```bash
-# One-time setup
-./setup.sh
-
-# Run the app anytime
-./run.sh
-```
-
-**For Windows:**
-```batch
-REM One-time setup
-setup.bat
-
-REM Run the app anytime
-run.bat
-```
-
-#### 🔧 Manual Setup
-
-1. **Navigate to the project directory:**
-   ```bash
-   cd /path/to/your/project
-   ```
-
-2. **Create and activate virtual environment (RECOMMENDED):**
-   ```bash
-   # Create virtual environment
-   python3 -m venv venv
-   
-   # Activate it (Linux/Mac)
-   source venv/bin/activate
-   
-   # Activate it (Windows)
-   venv\Scripts\activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run the application:**
-   ```bash
-   python app.py
-   ```
-
-5. **When done, deactivate virtual environment:**
-   ```bash
-   deactivate
-   ```
-
-4. **Open your browser and visit:**
-   ```
-   http://localhost:5000
-   ```
-
-That's it! 🎉 The app is now running and ready for your child to start learning Chinese!
-
-## 📁 Project Structure
+## Project Structure
 
 ```
-project/
-│
+learning_Ava/
 ├── app.py              # Main Flask application
 ├── requirements.txt    # Python dependencies
-├── README.md          # This file
-├── .gitignore         # Git ignore file
-├── setup.sh           # Linux/Mac setup script
-├── setup.bat          # Windows setup script
-├── run.sh             # Linux/Mac run script
-├── run.bat            # Windows run script
-├── venv/              # Virtual environment (created by setup)
-├── uploads/           # Uploaded images storage
-│   └── .gitkeep       # Keeps directory in git
-├── templates/         # HTML templates
-│   ├── index.html     # Homepage with upload form
-│   └── practice.html  # Practice page
+├── README.md           # This file
+├── PRD.md              # Product requirements
+├── .gitignore
+├── setup.sh            # Linux/Mac setup script
+├── setup.bat           # Windows setup script
+├── uploads/            # Uploaded worksheet images
+│   └── .gitkeep
+├── saved_vocab/        # Per-unit vocabulary JSON files
+│   ├── Unit_1.json
+│   └── Unit_2.json
+├── templates/
+│   ├── index.html      # Homepage with upload form
+│   └── practice.html   # Practice/reading interface
 └── static/
-    └── style.css      # Child-friendly CSS styles
+    └── style.css       # Styles
 ```
 
-## 🎮 How to Use
+## Quick Start
 
-1. **Upload an Image**: 
-   - Click "Choose Image File" on the homepage
-   - Select a PNG, JPG, or JPEG file with Chinese characters
-   - Click "Upload & Start Learning!"
+### Prerequisites
 
-2. **Practice**: 
-   - Click on any uploaded image thumbnail
-   - Click "Start Practice Session!" to begin learning
-   - Explore the different practice modes (coming soon!)
+- Python 3.7+
+- pip
 
-## 📋 File Requirements
+### Setup
 
-- **Supported formats**: PNG, JPG, JPEG only
+**Linux/Mac:**
+```bash
+./setup.sh
+python app.py
+```
+
+**Windows:**
+```batch
+setup.bat
+python app.py
+```
+
+**Manual:**
+```bash
+python3 -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
+
+Then open your browser at `http://localhost:8080`.
+
+## File Requirements
+
+- **Supported formats**: PNG, JPG, JPEG
 - **Maximum file size**: 5MB
-- **Best results**: Clear images with visible Chinese characters
+- **Best results**: Clear photos of Chinese worksheet pages with visible section headers (口语表达词汇 / 识读词语)
 
-## 🛡️ Security Features
+## OCR Pipeline
 
-- File type validation
-- File size limits (5MB max)
-- Secure filename handling
-- Automatic filename collision prevention
-- Input sanitization
+The vocabulary extraction in `app.py` uses a multi-strategy approach:
 
-## 🎨 Design Features
+1. **Direct vocabulary-line detection** — finds lines with 3+ period-separated Chinese words
+2. **Section-header detection** — locates 口语表达词汇 and 识读词语 headers by position, then assigns words to the correct section
+3. **Fallback pattern matching** — used when headers are not clearly recognized
 
-- **Child-friendly interface** with large, colorful buttons
-- **Responsive design** that works on all devices
-- **Smooth animations** and interactive elements
-- **Fun color scheme** with gradients and soft colors
-- **Comic Sans font** for a playful, kid-friendly look
+A small correction table fixes known OCR misreads (e.g. `眼晴` → `眼睛`).
 
-## 🔧 Technical Details
+## Security
 
-- **Backend**: Python Flask framework
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Templates**: Jinja2 templating engine
-- **Storage**: Local file system (no database required)
-- **Security**: Werkzeug secure filename utilities
+- File type validation (extension + size)
+- Secure filename handling via Werkzeug
+- UUID-prefixed filenames to prevent collisions
+- Path traversal protection on all file-serving routes
 
-## 🎨 **Hanzi Writer Integration**
+## Troubleshooting
 
-The stroke animation feature now uses **Hanzi Writer**, a professional JavaScript library for Chinese character learning:
-
-- **✅ Authentic Stroke Order**: Real Chinese character stroke sequences
-- **✅ Interactive Practice**: Draw characters with real-time feedback
-- **✅ Multiple Characters**: 15+ characters including numbers, family words, and basics
-- **✅ Progress Tracking**: Visual feedback on practice completion
-- **✅ Professional Animations**: Smooth, accurate stroke animations
-- **✅ Mobile Friendly**: Touch-enabled drawing on tablets and phones
-
-### Available Characters:
-- **Basic**: 人(person), 大(big), 小(small), 水(water), 火(fire), 木(wood)
-- **Numbers**: 一(one), 二(two), 三(three), 四(four), 五(five)
-- **Family**: 爸(father), 妈(mother), 我(I/me), 你(you)
-
-## 🚀 Future Enhancements
-
-- **📖 Sentence Reading**: Audio-enabled reading comprehension
-- **🎵 Nursery Rhymes**: Musical learning activities
-- **🏆 Progress Tracking**: Save and track learning progress
-- **🎯 More Characters**: Expand character library
-- **🔊 Audio Pronunciation**: Add pinyin audio playback
-
-## 🐛 Troubleshooting
-
-### Common Issues:
-
-1. **"Module not found" error**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Permission errors on uploads folder**:
-   ```bash
-   chmod 755 uploads/
-   ```
-
-3. **Port already in use**:
-   - Change the port in `app.py`: `app.run(port=5001)`
-   - Or kill the process using port 5000
-
-4. **Images not displaying**:
-   - Check that images are in the `uploads/` folder
-   - Verify file permissions
-   - Check browser console for errors
-
-## 🎯 Development Notes
-
-- The app runs in debug mode by default for development
-- File uploads are stored in the local `uploads/` directory
-- No database is required - all data is file-based
-- The app is designed to be easily extensible for future features
-
-## 📞 Support
-
-If you encounter any issues:
-1. Check the terminal output for error messages
-2. Verify all files are in the correct locations
-3. Ensure Python and pip are properly installed
-4. Check file permissions for the uploads directory
-
----
-
-**Happy Learning! 🎉🐼📚**
-
-*Made with ❤️ for young Chinese language learners*
-
-## Claude (Anthropic) Setup
-
-If you'd like to call Anthropic Claude from this project, follow these steps:
-
-- **Install new dependencies:**
-
+**"Module not found" error:**
 ```bash
 pip install -r requirements.txt
 ```
 
-- **Set your API key:** Create a `.env` file in the project root or export the environment variable `ANTHROPIC_API_KEY`.
+**Port already in use:**
+- Change the port in `app.py`: `app.run(port=8081)`
 
-Example `.env` file contents:
+**OCR takes a long time on first run:**
+- EasyOCR downloads its model on first use. Subsequent runs are faster as the model is cached.
 
-```
-ANTHROPIC_API_KEY=sk-...your_api_key_here...
-```
+---
 
-- **Run the quick test script:**
-
-```bash
-python test_claude.py
-```
-
-This project includes `claude_client.py`, a lightweight HTTP client that uses the Anthropic `complete` endpoint. It expects `ANTHROPIC_API_KEY` to be set in the environment. The test script `test_claude.py` shows a minimal example of usage.
-
-Note: Network requests will run against Anthropic's API and consume any quota associated with your key. If you prefer to use Anthropic's official SDK instead of the simple HTTP client, install the `anthropic` package and adapt the client accordingly.
-
-**Security Note:** If you have already posted or shared your API key (for example by pasting it into chat or committing it), rotate it immediately in the Anthropic dashboard and revoke the exposed key. Do not share API keys in public channels or version control.
+*Made for Ava — happy learning!*
