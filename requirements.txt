@@ -1,0 +1,23 @@
+# Chinese Learning Web App Dependencies
+# Core web framework
+Flask==2.3.3
+
+# Security utilities (included with Flask but listed for clarity)
+Werkzeug==2.3.7
+
+# Template engine (included with Flask but listed for clarity)  
+Jinja2==3.1.2
+
+# WSGI server for production deployment (optional)
+gunicorn==21.2.0
+
+# Additional utilities that might be useful for future enhancements
+Pillow==10.0.1  # For image processing if needed later
+
+# EasyOCR for Chinese text recognition (no build issues)
+easyocr==1.7.0
+Pillow==9.5.0
+
+# For Anthropic Claude API calls (simple HTTP client)
+requests>=2.28.0
+python-dotenv>=1.0.0

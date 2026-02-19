@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinese Learning for Kids 🐼</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .upload-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .main-title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .upload-description {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .upload-button {
+            width: 100%;
+            height: 80px;
+            font-size: 1.4em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .upload-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        
+        .upload-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .hidden-upload {
+            display: none;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .divider span {
+            padding: 0 15px;
+        }
+        
+        .saved-units {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .unit-button {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .unit-button:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .unit-button .unit-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .unit-button .unit-stats {
+            font-size: 0.7em;
+            font-weight: normal;
+            opacity: 0.8;
+        }
+        
+        .requirements {
+            font-size: 0.9em;
+            color: #888;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .flash.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .upload-container {
+                padding: 30px 20px;
+            }
+            
+            .main-title {
+                font-size: 2em;
+            }
+            
+            .upload-button {
+                height: 70px;
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <h1 class="main-title">🐼 Chinese Learning for Kids 🎨</h1>
+        
+        <p class="upload-description">
+            📚 <strong>Step 1:</strong> Upload Your Chinese Worksheet<br>
+            Choose a clear image with Chinese vocabulary sections<br>
+            <em>Reading and Practice will work with your uploaded image only.</em>
+        </p>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Hidden Upload Form -->
+        <form method="post" enctype="multipart/form-data" class="hidden-upload" id="upload-form">
+            <input type="file" 
+                   name="file" 
+                   id="file-input" 
+                   accept=".png,.jpg,.jpeg"
+                   onchange="handleFileUpload(this)">
+        </form>
+        
+        {% if saved_units and saved_units|length > 0 %}
+        <!-- Saved Units Section -->
+        <div class="saved-units">
+            {% for unit in saved_units %}
+            <button class="unit-button" onclick="window.location.href='/practice-unit/{{ unit.unit_name }}'">
+                <span class="unit-label">📖 {{ unit.unit_name }} ({{ unit.unit_chinese }})</span>
+                <span class="unit-stats">口语 {{ unit.spoken_count }} | 识读 {{ unit.practice_count }}</span>
+            </button>
+            {% endfor %}
+        </div>
+        
+        <div class="divider"><span>or upload a new worksheet</span></div>
+        {% endif %}
+        
+        <!-- Upload Button -->
+        <button class="upload-button" onclick="triggerFileUpload()" id="upload-btn">
+            📸 Upload New Worksheet
+        </button>
+        
+        <!-- Requirements -->
+        <div class="requirements">
+            <p><strong>📋 Requirements:</strong></p>
+            <p>• File types: PNG, JPG, JPEG only</p>
+            <p>• Maximum size: 5MB</p>
+            <p>• Best results with clear Chinese characters</p>
+        </div>
+    </div>
+
+    <script>
+        // Trigger file upload
+        function triggerFileUpload() {
+            document.getElementById('file-input').click();
+        }
+        
+        // Handle file upload
+        function handleFileUpload(input) {
+            if (input.files && input.files[0]) {
+                // Show loading state
+                const uploadBtn = document.getElementById('upload-btn');
+                uploadBtn.innerHTML = '⏳ Uploading... Please wait';
+                uploadBtn.disabled = true;
+                
+                // Submit the form (will redirect to practice page automatically)
+                document.getElementById('upload-form').submit();
+            }
+        }
+        
+        // Add entrance animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.upload-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                container.style.transition = 'all 0.8s ease';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 200);
+        });
+    </script>
+</body>
+</html>
