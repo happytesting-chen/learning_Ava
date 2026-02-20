@@ -169,10 +169,44 @@
 
         .current-image {
             max-width: 100%;
-            max-height: 300px;
+            /* allow larger thumbnails when needed - height controlled separately */
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             margin: 20px 0;
+        }
+
+        /* overlay used to display worksheet image full‑screen */
+        .full-image-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .full-image-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .full-image-overlay .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2em;
+            cursor: pointer;
         }
 
         /* Reading Section */
@@ -273,6 +307,7 @@
             background: linear-gradient(135deg, #56ab2f, #a8e6cf);
             font-size: 1.5em;
             padding: 25px 50px;
+            z-index: 50; /* make sure overlay doesn't obscure it */
         }
 
         .big-button.pause {
@@ -283,7 +318,7 @@
         .practice-container {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 20px;
-            padding: 60px;
+            padding: 24px; /* reduced padding to avoid large left margin */
             text-align: center;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             max-width: 900px;
@@ -292,6 +327,83 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+        }
+        /* Use safe viewport units to avoid Safari address bar issues */
+        .main-content {
+            min-height: 100svh;
+        }
+        .practice-container {
+            min-height: calc(100svh - 40px);
+        }
+
+        /* compact mode removes large left padding so left column sits near the container edge */
+        .practice-container.compact {
+            padding: 14px 18px 18px 8px;
+            border-radius: 8px;
+        }
+
+        /* hide the practice page title when compact */
+        .practice-container.compact .practice-title {
+            display: none;
+        }
+
+        /* hide the small left header when compact (left words only) */
+        .practice-container.compact .practice-left > div:first-child {
+            display: none;
+        }
+
+        /* Two-column layout inside practice: left = word list, right = tracing area */
+
+        .practice-body {
+            display: flex;
+            gap: 18px; /* tighten gap so more room for tracing */
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .practice-left {
+            /* Fixed-ish left column so it never collapses; scroll when long */
+            flex: 0 0 220px;
+            min-width: 160px;
+            max-width: 260px;
+            max-height: calc(100svh - 140px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+            padding-left: 6px; /* move items closer to the left edge */
+        }
+
+        .practice-right {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-right: 8px;
+        }
+
+        .word-item {
+            background: linear-gradient(135deg, #6f5df0, #6c63f5);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 8px;
+            font-size: 1.3em;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(108, 99, 245, 0.18);
+            text-align: center;
+            width: 100%;
+        }
+
+        .word-item:hover { transform: translateY(-2px); }
+
+        .word-item.selected {
+            outline: 3px solid rgba(99,102,241,0.18);
+            box-shadow: 0 8px 22px rgba(99,102,241,0.20);
+            transform: translateY(-2px) scale(1.02);
         }
 
         .practice-title {
@@ -335,13 +447,55 @@
         }
 
         .hanzi-container {
-            width: 300px;
-            height: 300px;
-            margin: 20px auto;
-            border: 3px solid #e2e8f0;
-            border-radius: 15px;
+            /* larger practice area for tracing */
+            width: 100%;
+            flex: 1 1 auto; /* fill remaining height */
+            max-width: 100%;
+            margin: 12px 0;
+            border: 3px solid #e9eef6;
+            border-radius: 14px;
             background: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        /* ensure Hanzi container and its inner SVG/canvas are touch-friendly */
+        #hanziContainer, #hanziContainer svg, #hanziContainer canvas {
+            width: 100% !important;
+            height: 100% !important;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Drawer overlay for small screens */
+        .word-drawer {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 280px;
+            background: rgba(255,255,255,0.98);
+            box-shadow: 4px 0 30px rgba(0,0,0,0.15);
+            z-index: 300;
+            transform: translateX(-110%);
+            transition: transform 0.25s ease;
+            overflow-y: auto;
+            padding: 18px;
+        }
+
+        .word-drawer.open { transform: translateX(0); }
+
+        .words-button {
+            display: none;
+            position: absolute;
+            left: 16px;
+            top: 14px;
+            z-index: 250;
+            background: linear-gradient(135deg,#3dc0a6,#2fb6a0);
+            color: white;
+            border: none;
+            border-radius: 22px;
+            padding: 10px 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
         }
 
         .practice-info {
@@ -400,26 +554,26 @@
         <div class="left-sidebar">
             <div class="app-logo">🐼 Chinese Learning</div>
             
-            <button class="sidebar-button active" onclick="showSection('reading')">
+            <button class="sidebar-button active" onclick="showSection('reading', this)">
                 <div class="icon">🔊</div>
                 <div class="text">Reading<br><small>口语表达词汇</small></div>
             </button>
             
-            <button class="sidebar-button" onclick="showSection('practicing')">
+            <button class="sidebar-button" onclick="showSection('practicing', this)">
                 <div class="icon">✏️</div>
                 <div class="text">Practice<br><small>识读词语</small></div>
             </button>
             
             <!-- Small Upload Button -->
             <button class="small-upload-btn" onclick="uploadNewImage()">
-                📷 Upload New
+                🏠 Back to Home
             </button>
         </div>
 
         <!-- Main Content Area -->
         <div class="main-content">
             <!-- Current Image Info (Header) -->
-            <div class="image-header" style="background: rgba(255,255,255,0.9); padding: 15px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div id="imageHeader" class="image-header" style="background: rgba(255,255,255,0.9); padding: 15px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <img src="{{ url_for('uploaded_file', filename=filename) }}" 
                          alt="{{ filename }}" 
@@ -466,16 +620,35 @@
             <!-- Practicing Section -->
             <div id="practicing" class="content-section">
                 <div class="practice-container">
-                    <div class="practice-title">✏️ 识读词语 Practice</div>
-                    
-                    <div class="character-grid" id="characterGrid">
-                        <!-- Characters will be populated here -->
-                    </div>
-                    
-                    <div class="hanzi-practice-area" id="hanziPracticeArea" style="display: none;">
-                        <div class="practice-info" id="practiceInfo">Select a character to practice</div>
-                        <div class="hanzi-container" id="hanziContainer"></div>
-                        <button class="big-button" onclick="resetPractice()">🔄 Try Again</button>
+                        <div class="practice-title">✏️ 识读词语 Practice</div>
+                        <button class="words-button" id="wordsToggleBtn" onclick="openWordDrawer()">Words ☰</button>
+                    <!-- button to show worksheet full screen -->
+                    <button id="viewWorksheetBtn" class="big-button" onclick="toggleFullImage()" style="margin:10px 0;">🖼 View Worksheet</button>
+
+                    <div class="practice-body">
+                        <div class="practice-left" id="practiceLeft">
+                            <!-- Words list will be populated here -->
+                        </div>
+
+                        <!-- Drawer for small screens (hidden normally) -->
+                        <div id="wordDrawer" class="word-drawer" aria-hidden="true">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <strong>识读词语</strong>
+                                <button onclick="closeWordDrawer()" style="background:none;border:none;font-size:18px;">✖</button>
+                            </div>
+                            <div id="drawerList"></div>
+                        </div>
+
+                        <div class="practice-right">
+                            <div class="hanzi-practice-area" id="hanziPracticeArea" style="display: none; width:100%;">
+                                <div class="practice-info" id="practiceInfo">Select a character to practice</div>
+                                <!-- Controls removed for simplified kid-friendly flow: animation auto-plays then tracing starts -->
+                                <div class="hanzi-container" id="hanziContainer"></div>
+                                <div style="margin-top:12px;">
+                                    <button class="big-button" onclick="resetPractice()">🔙 Exit</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -502,6 +675,8 @@
         let currentIndex = 0;
         let isReading = false;
         let currentHanziWriter = null;
+        let currentChar = null; // currently selected character
+        let isTracing = false;  // whether we're in tracing mode
         let speechSynthesis = window.speechSynthesis;
 
         // Chinese characters database
@@ -654,11 +829,21 @@
                 document.querySelectorAll('.sidebar-button').forEach(btn => btn.classList.remove('active'));
                 document.querySelector('[onclick="showSection(\'reading\')"]').classList.add('active');
             }
+
+            // Ensure canvas sizes after init and on mobile orientation
+            setTimeout(resizeCanvasToContainer, 120);
         }
         
         // Upload new image (replaces current image)
         function uploadNewImage() {
             window.location.href = '/';
+        }
+
+        // Toggle the full-screen worksheet overlay
+        function toggleFullImage() {
+            const overlay = document.getElementById('fullImageOverlay');
+            if (!overlay) return;
+            overlay.style.display = (overlay.style.display === 'flex' ? 'none' : 'flex');
         }
 
         // Show section and update active button
@@ -669,8 +854,6 @@
             // If buttonElement is provided, use it; otherwise find by onclick attribute
             if (buttonElement && buttonElement.classList.contains('sidebar-button')) {
                 buttonElement.classList.add('active');
-            } else if (event && event.target && event.target.classList.contains('sidebar-button')) {
-                event.target.classList.add('active');
             } else {
                 // Find button by onclick attribute (only sidebar buttons)
                 const targetButton = document.querySelector(`.sidebar-button[onclick*="showSection('${sectionId}')"]`);
@@ -685,29 +868,36 @@
             if (targetSection) {
                 targetSection.classList.add('active');
             }
-            
-            // Stop any ongoing reading
-            if (isReading) {
-                pauseReading();
+
+            // hide overlay any time we leave practice mode
+            const overlay = document.getElementById('fullImageOverlay');
+            if (overlay && sectionId !== 'practicing') {
+                overlay.style.display = 'none';
+            }
+
+            // hide the image header when practicing; show otherwise
+            const header = document.getElementById('imageHeader');
+            if (header) {
+                if (sectionId === 'practicing') {
+                    header.style.display = 'none';
+                } else {
+                    header.style.display = '';
+                }
             }
         }
 
-        // Auto-start vocabulary extraction when page loads
-        function loadSampleData() {
-            // Show initial loading state
-            document.getElementById('readingDisplay').textContent = '正在提取词汇...';
-            document.getElementById('readingInfo').textContent = 'EasyOCR is extracting 口语表达词汇 and 识读词语 from your image...';
-            
-            // Update extraction status
-            const statusElement = document.getElementById('extraction-status');
-            if (statusElement) {
-                statusElement.textContent = '🔍 EasyOCR processing your worksheet...';
-                statusElement.style.color = '#3498db';
-            }
-            
-            // Start vocabulary extraction immediately
-            extractVocabularyFromImage();
-        }
+        // Add the full-image overlay element at the end of the body
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.createElement('div');
+            overlay.id = 'fullImageOverlay';
+            overlay.className = 'full-image-overlay';
+            overlay.onclick = toggleFullImage;
+            overlay.innerHTML = `
+                <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Worksheet full screen" />
+                <button class="close-btn" onclick="toggleFullImage()">✖</button>
+            `;
+            document.body.appendChild(overlay);
+        });
         
         // Extract vocabulary from uploaded image using PaddleOCR API
         function extractVocabularyFromImage() {
@@ -761,6 +951,78 @@
                     updateExtractionStatus(0, 0);
                 });
         }
+
+            // Drawer helpers
+            function openWordDrawer() {
+                const d = document.getElementById('wordDrawer');
+                if (d) d.classList.add('open');
+            }
+
+            function closeWordDrawer() {
+                const d = document.getElementById('wordDrawer');
+                if (d) d.classList.remove('open');
+            }
+
+            // Resize canvas and HanziWriter to container; called on load/resize/orientation change
+            function resizeCanvasToContainer() {
+                const container = document.getElementById('hanziContainer');
+                if (!container) return;
+                const dpr = window.devicePixelRatio || 1;
+
+                // compute available CSS size (use bounding client rect to include flex sizing)
+                const rect = container.getBoundingClientRect();
+                const cssW = Math.max(100, Math.floor(rect.width));
+                const cssH = Math.max(100, Math.floor(rect.height));
+
+                // apply explicit CSS width/height to ensure inner canvas/SVG fills
+                container.style.width = cssW + 'px';
+                container.style.height = cssH + 'px';
+
+                // if a writer exists, re-create it at higher resolution so the glyph fits exactly
+                if (currentChar) {
+                    // Keep current tracing state
+                    const wasTracing = !!isTracing;
+                    // cancel existing
+                    try { if (currentHanziWriter && currentHanziWriter.cancelQuiz) currentHanziWriter.cancelQuiz(); } catch(e){}
+                    try { if (currentHanziWriter && currentHanziWriter.cancelAnimation) currentHanziWriter.cancelAnimation(); } catch(e){}
+                    currentHanziWriter = null;
+
+                    const pixelW = Math.floor(cssW * dpr);
+                    const pixelH = Math.floor(cssH * dpr);
+
+                    // recreate writer sized to pixel backing size; padding ~10% of smaller dimension
+                    const padding = Math.floor(Math.min(pixelW, pixelH) * 0.10);
+                    currentHanziWriter = HanziWriter.create('hanziContainer', currentChar, {
+                        width: pixelW,
+                        height: pixelH,
+                        padding: padding,
+                        strokeColor: '#2d3748',
+                        strokeAnimationSpeed: 1,
+                        delayBetweenStrokes: 200,
+                        showCharacter: false
+                    });
+
+                    // If we were tracing before, restart quiz; otherwise play animation then quiz
+                    if (wasTracing) {
+                        startQuizMode();
+                    } else {
+                        currentHanziWriter.animateCharacter({
+                            onComplete: () => {
+                                resizeCanvasToContainer();
+                                startQuizMode();
+                            }
+                        });
+                    }
+                }
+            }
+
+            // wire resize events
+            window.addEventListener('resize', () => {
+                resizeCanvasToContainer();
+            });
+            window.addEventListener('orientationchange', () => {
+                setTimeout(resizeCanvasToContainer, 200);
+            });
         
         // Process vocabulary data from PaddleOCR API
         function processVocabularyData(data) {
@@ -854,7 +1116,10 @@
 
         // Start Reading Mode - 只读口语表达词汇 (Only read from 口语表达词汇 section of uploaded image)
         function startReadingMode() {
+            console.log('startReadingMode() called, extractedPhrases length:', extractedPhrases.length);
             if (extractedPhrases.length === 0) {
+                // update UI as well as alert, since pop‑ups can be blocked
+                document.getElementById('readingInfo').textContent = '⚠️ No 口语表达词汇 section found – please upload a worksheet with that section.';
                 alert('No 口语表达词汇 section found in your uploaded image! Please upload a Chinese worksheet with 口语表达词汇 section.');
                 return;
             }
@@ -947,33 +1212,49 @@
 
         // Update practice section
         function updatePracticeSection() {
-            const grid = document.getElementById('characterGrid');
-            grid.innerHTML = '';
-            
+            const left = document.getElementById('practiceLeft');
+            // show loading placeholder while we populate
+            left.innerHTML = `<div style="padding:14px; text-align:center; color:#555">Loading words…</div>`;
+
             // Only use characters from 识读词语 section of uploaded image
             if (extractedWords.length > 0) {
-                // Add section header
+                // Add small header
                 const header = document.createElement('div');
-                header.style.cssText = 'text-align: center; margin-bottom: 20px; color: #4a5568; font-weight: bold;';
-                header.innerHTML = `<h3>📖 识读词语 Practice</h3><p>Characters from your uploaded worksheet only</p>`;
-                grid.appendChild(header);
-                
-                // Add character cards
-                extractedWords.forEach(word => {
-                    const card = document.createElement('button');
-                    card.className = 'character-card';
-                    card.textContent = word.char;
-                    card.onclick = () => practiceCharacter(word);
-                    grid.appendChild(card);
+                header.style.cssText = 'text-align: left; margin-bottom: 8px; color: #4a5568; font-weight: bold; padding-left:6px;';
+                header.innerHTML = `<div style="font-size:1.05em">📖 识读词语</div><div style="font-size:0.85em;color:#6b7280;">Characters from your uploaded worksheet</div>`;
+                left.appendChild(header);
+
+                // Add word list (also populate drawer list for small screens)
+                const drawerList = document.getElementById('drawerList');
+                if (drawerList) drawerList.innerHTML = '';
+                extractedWords.forEach((word, idx) => {
+                    const item = document.createElement('button');
+                    item.className = 'word-item';
+                    item.textContent = word.char + (word.pinyin ? ('  ' + word.pinyin) : '');
+                    item.onclick = () => { selectWord(item, word); };
+                    left.appendChild(item);
+
+                    if (drawerList) {
+                        const d = document.createElement('div');
+                        d.style.marginBottom = '8px';
+                        const dbtn = document.createElement('button');
+                        dbtn.className = 'word-item';
+                        dbtn.textContent = item.textContent;
+                        dbtn.onclick = () => { selectWord(item, word); closeWordDrawer(); };
+                        d.appendChild(dbtn);
+                        drawerList.appendChild(d);
+                    }
                 });
+
+                // Do NOT auto-select any item on page load — wait for user to click.
+                // Ensure layout sizing is stable
+                setTimeout(() => { resizeCanvasToContainer(); }, 80);
             } else {
-                // Show specific message for missing 识读词语 section
-                grid.innerHTML = `
-                    <div style="text-align: center; color: #666; padding: 40px; background: rgba(255,255,255,0.8); border-radius: 15px;">
-                        <h3>📝 No 识读词语 Section Found</h3>
-                        <p>No characters found in the <strong>识读词语</strong> section of your uploaded image.</p>
-                        <p>Please upload a Chinese worksheet with a clear <strong>识读词语</strong> section.</p>
-                        <button onclick="uploadNewImage()" style="margin-top: 15px; padding: 10px 20px; background: #ff6b6b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                left.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 20px; background: rgba(255,255,255,0.8); border-radius: 12px;">
+                        <h4 style="margin:0">📝 No 识读词语 Found</h4>
+                        <p style="margin:6px 0 0 0">Please upload a worksheet with a clear 识读词语 section.</p>
+                        <button onclick="uploadNewImage()" style="margin-top: 12px; padding: 8px 14px; background: #ff6b6b; color: white; border: none; border-radius: 8px; cursor: pointer;">
                             📸 Upload New Image
                         </button>
                     </div>
@@ -986,38 +1267,98 @@
             const practiceArea = document.getElementById('hanziPracticeArea');
             const infoElement = document.getElementById('practiceInfo');
             const container = document.getElementById('hanziContainer');
-            
             practiceArea.style.display = 'block';
-            infoElement.textContent = `Practice: ${word.char} (${word.pinyin}) - ${word.meaning}`;
+            infoElement.textContent = `Practice: ${word.char} ${word.pinyin ? '('+word.pinyin+')' : ''}` + (word.meaning ? ` - ${word.meaning}` : '');
             container.innerHTML = '';
-            
-            // Create Hanzi Writer
+            // store current char and state
+            currentChar = word.char;
+            isTracing = false;
+
+            // If a previous writer exists, clear it (stop quiz or animation)
+            if (currentHanziWriter) {
+                try { if (currentHanziWriter.cancelQuiz) currentHanziWriter.cancelQuiz(); } catch (e) { /*ignore*/ }
+                try { if (currentHanziWriter.cancelAnimation) currentHanziWriter.cancelAnimation(); } catch (e) { /*ignore*/ }
+                currentHanziWriter = null;
+            }
+
+            // Measure container to set HanziWriter size dynamically and support high-DPI
+            const dpr = window.devicePixelRatio || 1;
+            const cssWidth = container.clientWidth || container.parentElement.clientWidth || 500;
+            const cssHeight = container.clientHeight || container.parentElement.clientHeight || Math.min(cssWidth, 600);
+
+            // Ensure container has explicit CSS size so HanziWriter can size correctly
+            container.style.width = cssWidth + 'px';
+            container.style.height = cssHeight + 'px';
+
+            // Provide higher resolution backing size to HanziWriter for crispness on Retina/iPad
+            const pixelWidth = Math.floor(cssWidth * dpr);
+            const pixelHeight = Math.floor(cssHeight * dpr);
+
+
             currentHanziWriter = HanziWriter.create('hanziContainer', word.char, {
-                width: 300,
-                height: 300,
-                padding: 20,
+                width: pixelWidth,
+                height: pixelHeight,
+                padding: Math.floor(20 * dpr),
                 strokeColor: '#2d3748',
                 strokeAnimationSpeed: 1,
                 delayBetweenStrokes: 200,
                 showCharacter: false
             });
 
+            // Highlight selected card in left list
+            // (we use selectWord helper to handle both left and drawer selections)
+
+            // Hide header and view worksheet button, and compact the practice container
+            const header = document.getElementById('imageHeader');
+            if (header) header.style.display = 'none';
+            const viewBtn = document.getElementById('viewWorksheetBtn');
+            if (viewBtn) viewBtn.style.display = 'none';
+            const practiceContainer = document.querySelector('.practice-container');
+            if (practiceContainer) practiceContainer.classList.add('compact');
+
+            // Hide practice page title and the small left header (keep only word cards)
+            const pageTitle = document.querySelector('.practice-title');
+            if (pageTitle) pageTitle.style.display = 'none';
+            const leftHeader = document.querySelector('.practice-left > div:first-child');
+            if (leftHeader) leftHeader.style.display = 'none';
+
             // Start animation, then auto-enter quiz mode
+            // Use animateCharacter's onComplete to transition automatically
             currentHanziWriter.animateCharacter({
                 onComplete: () => {
+                    // ensure container is resized and visible before tracing
                     setTimeout(() => {
+                        resizeCanvasToContainer();
+                        // enter tracing mode
                         startQuizMode();
-                    }, 1000);
+                    }, 200);
                 }
             });
         }
 
+        // Helper: select a word element and start practice
+        function selectWord(element, word) {
+            // remove previous selection
+            document.querySelectorAll('.word-item.selected').forEach(el => el.classList.remove('selected'));
+            // set selected style
+            element.classList.add('selected');
+            // clear tracing area and practice new word
+            practiceCharacter(word);
+        }
+
+        // (Removed manual animation controls - animation auto-plays, then tracing starts.)
+
         // Start quiz mode
         function startQuizMode() {
             if (!currentHanziWriter) return;
-            
+
+            // mark tracing state
+            isTracing = true;
             document.getElementById('practiceInfo').textContent = 'Now trace the character! Follow the stroke order.';
-            
+
+            // ensure canvas size fits and the character is fully visible
+            resizeCanvasToContainer();
+
             currentHanziWriter.quiz({
                 onCorrectStroke: (strokeData) => {
                     console.log('Correct stroke:', strokeData.strokeNum);
@@ -1038,6 +1379,21 @@
                 document.getElementById('hanziContainer').innerHTML = '';
                 document.getElementById('practiceInfo').textContent = 'Select a character to practice';
                 document.getElementById('hanziPracticeArea').style.display = 'none';
+                // restore header and view button
+                const header = document.getElementById('imageHeader');
+                if (header) header.style.display = '';
+                const viewBtn = document.getElementById('viewWorksheetBtn');
+                if (viewBtn) viewBtn.style.display = '';
+                const practiceContainer = document.querySelector('.practice-container');
+                if (practiceContainer) practiceContainer.classList.remove('compact');
+                // restore practice title and left header visibility
+                const pageTitle = document.querySelector('.practice-title');
+                if (pageTitle) pageTitle.style.display = '';
+                const leftHeader = document.querySelector('.practice-left > div:first-child');
+                if (leftHeader) leftHeader.style.display = '';
+                // clear current char and tracing flag
+                currentChar = null;
+                isTracing = false;
             }
         }
 

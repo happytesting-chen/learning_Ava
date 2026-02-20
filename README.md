@@ -8,6 +8,8 @@ A kid-friendly Flask web application designed to help children practice Chinese 
 2. **OCR extraction** — EasyOCR scans the image for Chinese text, then the app parses two specific sections from the worksheet:
    - **口语表达词汇** (Spoken/Reading vocabulary)
    - **识读词语** (Practice/Writing vocabulary)
+   
+   Once the worksheet is loaded you can tap the “🖼 View Worksheet” button in practice mode to see the uploaded page full‑screen for easier reading. The file thumbnail and name are automatically hidden when you enter the practice section, giving the tracing area more room.
 3. **Practice page** — displays the extracted vocabulary with two distinct modes:
    - **Reading mode** — uses only spoken vocab (口语表达词汇)
    - **Practice mode** — uses only practice vocab (识读词语)
@@ -57,8 +59,9 @@ learning_Ava/
 ```
 
 ## Quick Start
-
-### Prerequisites
+> A **Back to Home** link/button is available on the practice page sidebar so you can easily return to the upload screen.
+>
+> ⚠️ If buttons seemed completely unresponsive, it was due to a JavaScript syntax error that prevented the script from loading. The code now avoids using the global `event` variable and the sidebar buttons pass `this` to `showSection`, and all braces have been corrected. Open the browser console to see logs when you click “Start Reading Mode” – you should see the phrase count or an alert if none were found.### Prerequisites
 
 - Python 3.8+ with `python3-venv` (Ubuntu/Debian: `sudo apt install python3 python3-venv python3-pip`)
 
